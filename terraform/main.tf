@@ -41,17 +41,20 @@ resource "google_container_cluster" "my_cluster" {
 
   name     = var.name
   location = var.region
+  
+  #enable_autopilot = true #we take this one out to be able to manage our network config
 
-  # Enable autopilot for this cluster
-  enable_autopilot = true
+  network  = google_compute_network.custom_vpc.id
+  subnetwork = google_compute_subnetwork.node_subnet.id
 
-  # Set an empty ip_allocation_policy to allow autopilot cluster to spin up correctly
   ip_allocation_policy {
+    cluster_ipv4_cidr_block  = "10.1.0.0/16"   # Pods
+    services_ipv4_cidr_block = "10.2.0.0/16"   # Services
   }
 
   # Avoid setting deletion_protection to false
   # until you're ready (and certain you want) to destroy the cluster.
-  # deletion_protection = false
+   deletion_protection = false
 
   depends_on = [
     module.enable_google_apis
@@ -90,11 +93,48 @@ resource "null_resource" "wait_conditions" {
     interpreter = ["bash", "-exc"]
     command     = <<-EOT
     kubectl wait --for=condition=AVAILABLE apiservice/v1beta1.metrics.k8s.io --timeout=180s
-    kubectl wait --for=condition=ready pods --all -n ${var.namespace} --timeout=280s
+    kubectl wait --for=condition=ready pods --all -n ${var.namespace} --timeout=380s
     EOT
   }
-
+  
   depends_on = [
     resource.null_resource.apply_deployment
   ]
 }
+
+
+
+
+
+resource "google_compute_network" "custom_vpc" {
+  name                    = "custom-vpc"
+  auto_create_subnetworks  = false  # Disabling automatic subnet creation
+}
+
+# subnet Nodes
+resource "google_compute_subnetwork" "node_subnet" {
+  name          = "node-subnet"
+  region        = var.region
+  network       = google_compute_network.custom_vpc.id
+  ip_cidr_range = "10.0.0.0/16"
+  private_ip_google_access = true
+}
+
+# subnet Pods
+resource "google_compute_subnetwork" "pod_subnet" {
+  name          = "pod-subnet"
+  region        = var.region
+  network       = google_compute_network.custom_vpc.id
+  ip_cidr_range = "10.1.0.0/16"
+  private_ip_google_access = true
+}
+
+# Service subnet (for Kubernetes service IP range)
+resource "google_compute_subnetwork" "service_subnet" {
+  name          = "service-subnet"
+  region        = var.region
+  network       = google_compute_network.custom_vpc.id
+  ip_cidr_range = "10.2.0.0/16"
+  private_ip_google_access = true
+}
+
