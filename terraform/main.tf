@@ -45,20 +45,32 @@ resource "google_container_cluster" "my_cluster" {
   #enable_autopilot = true #we take this one out to be able to manage our network config
 
   network  = google_compute_network.custom_vpc.id
-  subnetwork = google_compute_subnetwork.node_subnet.id
+  subnetwork = google_compute_subnetwork.node_subnet.name
 
   ip_allocation_policy {
-    cluster_ipv4_cidr_block  = "10.1.0.0/16"   # Pods
-    services_ipv4_cidr_block = "10.2.0.0/16"   # Services
+
+     #using the ranges from the predefined vpc subnets give us more control in the future
+    cluster_secondary_range_name  = "pod-range"       # Match the range_name in node_subnet
+    services_secondary_range_name = "service-range" 
+
   }
 
   # Avoid setting deletion_protection to false
   # until you're ready (and certain you want) to destroy the cluster.
-   deletion_protection = false
+  deletion_protection = false
+
+  initial_node_count = 1
 
   depends_on = [
     module.enable_google_apis
   ]
+
+  node_config {
+    machine_type = "e2-standard-4"
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  }
 }
 
 # Get credentials for cluster
@@ -118,23 +130,16 @@ resource "google_compute_subnetwork" "node_subnet" {
   network       = google_compute_network.custom_vpc.id
   ip_cidr_range = "10.0.0.0/16"
   private_ip_google_access = true
-}
 
-# subnet Pods
-resource "google_compute_subnetwork" "pod_subnet" {
-  name          = "pod-subnet"
-  region        = var.region
-  network       = google_compute_network.custom_vpc.id
-  ip_cidr_range = "10.1.0.0/16"
-  private_ip_google_access = true
-}
 
-# Service subnet (for Kubernetes service IP range)
-resource "google_compute_subnetwork" "service_subnet" {
-  name          = "service-subnet"
-  region        = var.region
-  network       = google_compute_network.custom_vpc.id
-  ip_cidr_range = "10.2.0.0/16"
-  private_ip_google_access = true
-}
+  # Secondary ranges for Pods and Services
+  secondary_ip_range {
+    range_name    = "pod-range"
+    ip_cidr_range = "10.1.0.0/16"
+  }
 
+  secondary_ip_range {
+    range_name    = "service-range"
+    ip_cidr_range = "10.2.0.0/16"
+  }
+}
