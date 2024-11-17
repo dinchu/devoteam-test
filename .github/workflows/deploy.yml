@@ -24,7 +24,8 @@ jobs:
       run: rm -f /tmp/gcp-key.json
 
     - name: Configure GCP Credentials
-      run: echo "${{ secrets.GCP_CREDENTIALS }}" > /tmp/gcp-key.json
+      #run: echo "${{ secrets.GCP_CREDENTIALS }}" > /tmp/gcp-key.json
+      run: printf "%s" "${{ secrets.GCP_CREDENTIALS }}" > /tmp/gcp-key.json
 
     - name: Verify GCP Key File #remember to remove this one
       run: cat /tmp/gcp-key.json
