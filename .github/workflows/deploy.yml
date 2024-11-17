@@ -29,7 +29,7 @@ jobs:
       working-directory: terraform
 
     - name: Plan Terraform Changes
-      run: terraform plan -out=tfplan
+      run: terraform plan -var="gcp_project_id=${{ secrets.GCP_PROJECT }}" -out=tfplan
       working-directory: terraform
 
     - name: Apply Terraform Changes
