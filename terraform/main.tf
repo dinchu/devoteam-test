@@ -66,7 +66,7 @@ resource "google_container_cluster" "my_cluster" {
   ]
 
   node_config {
-    machine_type = "e2-standard-4"
+    machine_type = "e2-standard-4" # smaller machines won't work
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
