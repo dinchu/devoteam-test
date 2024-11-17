@@ -19,6 +19,9 @@ jobs:
         service_account_key: ${{ secrets.GCP_CREDENTIALS }}
         export_default_credentials: true
 
+    - name: Configure GCP Credentials
+      run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > /tmp/gcp-key.json
+
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v2
       with:
@@ -36,3 +39,7 @@ jobs:
       if: github.event.inputs.approve == 'true' # Conditional execution
       run: terraform apply -var="gcp_project_id=${{ secrets.GCP_PROJECT }}" -auto-approve tfplan
       working-directory: terraform
+
+    - name: Clean up GCP Credentials
+      if: always()
+      run: rm -f /tmp/gcp-key.json

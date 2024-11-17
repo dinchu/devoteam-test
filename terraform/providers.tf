@@ -24,9 +24,11 @@ terraform {
 provider "google" {
   project = var.gcp_project_id
   region  = var.region
+  credentials = file("/tmp/gcp-key.json") # added the SA for github
 }
 
 provider "google-beta" {
   project = var.gcp_project_id
   region  = var.region
+  credentials = file("/tmp/gcp-key.json") # added the SA for github
 }
