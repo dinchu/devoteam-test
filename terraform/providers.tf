@@ -13,6 +13,12 @@
 # limitations under the License.
 
 terraform {
+
+  backend "gcs" {
+    bucket = "devoteam-tf-state-bucket"  #todo make it variable
+    prefix = "terraform/state"   
+  }
+
   required_providers {
     google = {
       source  = "hashicorp/google"
