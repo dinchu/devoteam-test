@@ -22,9 +22,6 @@ jobs:
     - name: Configure GCP Credentials
       run: echo "${{ secrets.GCP_CREDENTIALS }}" | base64 --decode > /tmp/gcp-key.json
 
-    - name: Verify GCP Key File #remember to remove this one
-      run: cat /tmp/gcp-key.json
-
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v2
       with:
@@ -39,7 +36,6 @@ jobs:
       working-directory: terraform
 
     - name: Apply Terraform Changes
-      if: github.event.inputs.approve == 'true' # Conditional execution
       run: terraform apply -var="gcp_project_id=${{ secrets.GCP_PROJECT }}" -auto-approve tfplan
       working-directory: terraform
     
