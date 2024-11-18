@@ -16,7 +16,8 @@ terraform {
 
   backend "gcs" {
     bucket = "devoteam-tf-state-bucket"  #todo make it variable
-    prefix = "terraform/state"   
+    prefix = "terraform/state"
+    credentials = file("/tmp/gcp-key.json")
   }
 
   required_providers {
