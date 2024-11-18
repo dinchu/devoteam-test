@@ -9,57 +9,28 @@ locals {
   memorystore_apis = ["redis.googleapis.com"]
   cluster_name     = google_container_cluster.my_cluster.name
 }
+module "networking" {
+  source  = "./modules/networking"
+  region  = var.region
+}
 
-# Enable Google Cloud APIs
 module "enable_google_apis" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
   version = "~> 17.0"
 
   project_id                  = var.gcp_project_id
   disable_services_on_destroy = false
-
-  # activate_apis is the set of base_apis and the APIs required by user-configured deployment options
   activate_apis = concat(local.base_apis, var.memorystore ? local.memorystore_apis : [])
 }
 
-# Create GKE cluster
-resource "google_container_cluster" "my_cluster" {
-
-  name     = var.name
-  location = var.region
-  
-  #enable_autopilot = true #we take this one out to be able to manage our network config
-
-  network  = google_compute_network.custom_vpc.id
-  subnetwork = google_compute_subnetwork.node_subnet.name
-
-  ip_allocation_policy {
-
-     #using the ranges from the predefined vpc subnets give us more control in the future
-    cluster_secondary_range_name  = "pod-range"       # Match the range_name in node_subnet
-    services_secondary_range_name = "service-range" 
-
-  }
-
-  # Avoid setting deletion_protection to false
-  # until you're ready (and certain you want) to destroy the cluster.
-  deletion_protection = false
-
-  initial_node_count = 1
-
-  depends_on = [
-    module.enable_google_apis
-  ]
-
-  node_config {
-    machine_type = "e2-standard-4" # smaller machines won't work
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
-  }
+module "kubernetes_gke" {
+  source  = "./modules/kubernetes_gke"
+  region  = var.region
+  network = module.networking.network_id
+  subnetwork = module.networking.subnet_id
+  project_id = var.gcp_project_id
 }
 
-# Get credentials for cluster
 module "gcloud" {
   source  = "terraform-google-modules/gcloud/google"
   version = "~> 3.0"
@@ -68,12 +39,9 @@ module "gcloud" {
   additional_components = ["kubectl", "beta"]
 
   create_cmd_entrypoint = "gcloud"
-  # Module does not support explicit dependency
-  # Enforce implicit dependency through use of local variable
-  create_cmd_body = "container clusters get-credentials ${local.cluster_name} --zone=${var.region} --project=${var.gcp_project_id}"
+  create_cmd_body       = "container clusters get-credentials ${module.kubernetes_gke.cluster_name} --zone=${var.region} --project=${var.gcp_project_id}"
 }
 
-# Apply YAML kubernetes-manifest configurations
 resource "null_resource" "apply_deployment" {
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
@@ -85,7 +53,6 @@ resource "null_resource" "apply_deployment" {
   ]
 }
 
-# Wait condition for all Pods to be ready before finishing
 resource "null_resource" "wait_conditions" {
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
@@ -94,38 +61,8 @@ resource "null_resource" "wait_conditions" {
     kubectl wait --for=condition=ready pods --all -n ${var.namespace} --timeout=380s
     EOT
   }
-  
+
   depends_on = [
     resource.null_resource.apply_deployment
   ]
-}
-
-
-
-
-
-resource "google_compute_network" "custom_vpc" {
-  name                    = "custom-vpc"
-  auto_create_subnetworks  = false  # Disabling automatic subnet creation
-}
-
-# subnet Nodes
-resource "google_compute_subnetwork" "node_subnet" {
-  name          = "node-subnet"
-  region        = var.region
-  network       = google_compute_network.custom_vpc.id
-  ip_cidr_range = "10.0.0.0/16"
-  private_ip_google_access = true
-
-
-  # Secondary ranges for Pods and Services
-  secondary_ip_range {
-    range_name    = "pod-range"
-    ip_cidr_range = "10.1.0.0/16"
-  }
-
-  secondary_ip_range {
-    range_name    = "service-range"
-    ip_cidr_range = "10.2.0.0/16"
-  }
 }
