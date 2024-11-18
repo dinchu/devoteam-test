@@ -1,3 +1,3 @@
 output "cluster_name" {
-  value = my_cluster.name
+  value = google_container_cluster.my_cluster.name
 }

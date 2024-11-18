@@ -1,7 +1,7 @@
 output "network_id" {
-  value = custom_vpc.id
+  value = google_compute_network.custom_vpc.id
 }
 
 output "subnet_id" {
-  value = node_subnet.id
+  value = google_compute_subnetwork.node_subnet.id
 }
