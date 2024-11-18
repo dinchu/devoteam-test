@@ -24,7 +24,7 @@ resource "google_container_cluster" "my_cluster" {
   initial_node_count = 1
 
   depends_on = [
-    module.enable_google_apis
+    var.enable_google_apis
   ]
 
   node_config {

@@ -24,15 +24,16 @@ module "enable_google_apis" {
 }
 
 module "kubernetes" {
-  source            = "./modules/kubernetes"
-  region            = var.region
-  network           = module.network.network_id
-  subnetwork        = module.network.subnet_id
-  name              = var.name
-  namespace         = var.namespace
-  gcp_project_id    = var.gcp_project_id
-  memorystore       = var.memorystore
-  filepath_manifest = var.filepath_manifest
+  source             = "./modules/kubernetes"
+  region             = var.region
+  network            = module.network.network_id
+  subnetwork         = module.network.subnet_id
+  name               = var.name
+  namespace          = var.namespace
+  gcp_project_id     = var.gcp_project_id
+  memorystore        = var.memorystore
+  filepath_manifest  = var.filepath_manifest
+  enable_google_apis = module.enable_google_apis
 }
 
 module "gcloud" {

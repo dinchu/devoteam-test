@@ -43,3 +43,7 @@ variable "subnetwork" {
   description = "subnetwork to use"
   type        = string
 }
+
+variable "enable_google_apis" {
+  description = "Dependency to enable Google APIs"
+}
