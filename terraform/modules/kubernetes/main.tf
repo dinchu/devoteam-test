@@ -21,7 +21,16 @@ resource "google_container_cluster" "my_cluster" {
   # until you're ready (and certain you want) to destroy the cluster.
   deletion_protection = false
 
-  initial_node_count = 1
+  #to make this test cheap we don't want to spawn 3 nodes by default
+  node_pool {
+    name               = "default-pool"
+    initial_node_count = 1
+
+    autoscaling {
+      min_node_count = 1
+      max_node_count = 2
+    }
+  }
 
   depends_on = [
     var.enable_google_apis
