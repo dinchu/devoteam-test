@@ -58,6 +58,7 @@ resource "null_resource" "apply_deployment" {
   ]
 }
 
+
 resource "null_resource" "wait_conditions" {
   provisioner "local-exec" {
     interpreter = ["bash", "-exc"]
