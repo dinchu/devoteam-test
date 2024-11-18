@@ -22,6 +22,9 @@ jobs:
     - name: Configure GCP Credentials
       run: echo "${{ secrets.GCP_CREDENTIALS }}" | base64 --decode > /tmp/gcp-key.json
 
+    - name: Set global env var
+      run: export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcp-key.json"
+
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v2
       with:
