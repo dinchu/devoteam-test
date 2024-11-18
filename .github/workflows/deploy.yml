@@ -36,7 +36,42 @@ jobs:
       working-directory: terraform
 
     - name: Apply Terraform Changes
-      run: terraform apply -var="gcp_project_id=${{ secrets.GCP_PROJECT }}" -auto-approve tfplan
+      run: terraform apply -auto-approve tfplan
+      working-directory: terraform
+    
+    - name: Clean up GCP Credentials
+      if: always()
+      run: rm -f /tmp/gcp-key.json
+
+  terraform-destroy:
+    name: Terraform Deployment Destroy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT }}
+        service_account_key: ${{ secrets.GCP_CREDENTIALS }}
+        export_default_credentials: true
+
+    - name: Configure GCP Credentials
+      run: echo "${{ secrets.GCP_CREDENTIALS }}" | base64 --decode > /tmp/gcp-key.json
+
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.9.8 # Specify your Terraform version here
+
+    - name: Initialize Terraform
+      run: terraform init
+      working-directory: terraform
+
+    - name: Apply Terraform Changes
+      run: terraform destroy -var="gcp_project_id=${{ secrets.GCP_PROJECT }}" -auto-approve
       working-directory: terraform
     
     - name: Clean up GCP Credentials
