@@ -27,6 +27,7 @@ jobs:
         # Set up the Google Cloud SDK and authenticate using the decoded key
         gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
         gcloud config set project ${{ secrets.GCP_PROJECT }}
+        export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json
       env:
         GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp-key.json
 
