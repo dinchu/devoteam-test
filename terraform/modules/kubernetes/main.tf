@@ -30,16 +30,17 @@ resource "google_container_cluster" "my_cluster" {
       min_node_count = 1
       max_node_count = 2
     }
+
+    node_config {
+      machine_type = "e2-standard-4" # smaller machines won't work
+      oauth_scopes = [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ]
+    }
   }
 
   depends_on = [
     var.enable_google_apis
   ]
 
-  node_config {
-    machine_type = "e2-standard-4" # smaller machines won't work
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
-  }
 }
