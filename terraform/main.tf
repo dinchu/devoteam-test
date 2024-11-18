@@ -10,7 +10,7 @@ locals {
   cluster_name     = google_container_cluster.my_cluster.name
 }
 module "networking" {
-  source  = "./modules/networking"
+  source  = "./modules/network"
   region  = var.region
 }
 
@@ -24,7 +24,7 @@ module "enable_google_apis" {
 }
 
 module "kubernetes_gke" {
-  source  = "./modules/kubernetes_gke"
+  source  = "./modules/kubernetes"
   region  = var.region
   network = module.networking.network_id
   subnetwork = module.networking.subnet_id
