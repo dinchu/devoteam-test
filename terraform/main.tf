@@ -9,7 +9,7 @@ locals {
   memorystore_apis = ["redis.googleapis.com"]
   cluster_name     = google_container_cluster.my_cluster.name
 }
-module "networking" {
+module "network" {
   source  = "./modules/network"
   region  = var.region
 }
@@ -23,11 +23,11 @@ module "enable_google_apis" {
   activate_apis = concat(local.base_apis, var.memorystore ? local.memorystore_apis : [])
 }
 
-module "kubernetes_gke" {
+module "kubernetes" {
   source  = "./modules/kubernetes"
   region  = var.region
-  network = module.networking.network_id
-  subnetwork = module.networking.subnet_id
+  network = module.network.network_id
+  subnetwork = module.network.subnet_id
   project_id = var.gcp_project_id
 }
 
@@ -39,7 +39,7 @@ module "gcloud" {
   additional_components = ["kubectl", "beta"]
 
   create_cmd_entrypoint = "gcloud"
-  create_cmd_body       = "container clusters get-credentials ${module.kubernetes_gke.cluster_name} --zone=${var.region} --project=${var.gcp_project_id}"
+  create_cmd_body       = "container clusters get-credentials ${module.kubernetes.cluster_name} --zone=${var.region} --project=${var.gcp_project_id}"
 }
 
 resource "null_resource" "apply_deployment" {
