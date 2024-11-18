@@ -1,11 +1,12 @@
-name: Deploy Microservices Demo on GCP
+name: Destroy Microservices Demo on GCP
 
 on:
   workflow_dispatch: # Enables manual trigger from GitHub Actions UI
 
 jobs:
-  terraform-deploy:
-    name: Terraform Deployment
+  
+  terraform-destroy:
+    name: Terraform Deployment Destroy
     runs-on: ubuntu-latest
 
     steps:
@@ -31,12 +32,8 @@ jobs:
       run: terraform init
       working-directory: terraform
 
-    - name: Plan Terraform Changes
-      run: terraform plan -var="gcp_project_id=${{ secrets.GCP_PROJECT }}" -out=tfplan
-      working-directory: terraform
-
     - name: Apply Terraform Changes
-      run: terraform apply -auto-approve tfplan
+      run: terraform destroy -var="gcp_project_id=${{ secrets.GCP_PROJECT }}" -auto-approve
       working-directory: terraform
     
     - name: Clean up GCP Credentials
