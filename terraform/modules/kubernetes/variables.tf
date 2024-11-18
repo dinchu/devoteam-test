@@ -33,3 +33,18 @@ variable "memstore_apis" {
   type        = list(string)
   default     = ["redis.googleapis.com"]
 }
+
+variable "namespace" {
+  description = "The Kubernetes namespace to deploy to"
+  type        = string
+}
+
+variable "network" {
+  description = "Network to use"
+  type        = string
+}
+
+variable "subnetwork" {
+  description = "subnetwork to use"
+  type        = string
+}

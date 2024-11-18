@@ -3,17 +3,17 @@ resource "google_container_cluster" "my_cluster" {
 
   name     = var.name
   location = var.region
-  
+
   #enable_autopilot = true #we take this one out to be able to manage our network config
 
-  network  = google_compute_network.custom_vpc.id
-  subnetwork = google_compute_subnetwork.node_subnet.name
+  network    = var.network
+  subnetwork = var.subnetwork
 
   ip_allocation_policy {
 
-     #using the ranges from the predefined vpc subnets give us more control in the future
-    cluster_secondary_range_name  = "pod-range"       # Match the range_name in node_subnet
-    services_secondary_range_name = "service-range" 
+    #using the ranges from the predefined vpc subnets give us more control in the future
+    cluster_secondary_range_name  = "pod-range" # Match the range_name in node_subnet
+    services_secondary_range_name = "service-range"
 
   }
 
