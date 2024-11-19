@@ -60,4 +60,6 @@ jobs:
       run: rm -f /tmp/gcp-key.json
 
     - name: Get the load balancer IP
-      run: kubectl get service frontend-external -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+      run: |
+        gcloud container clusters get-credentials online-boutique --zone=us-central1 --project=${{ secrets.GCP_PROJECT }}
+        kubectl get service frontend-external -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
