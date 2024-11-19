@@ -58,3 +58,6 @@ jobs:
     - name: Clean up GCP Credentials
       if: always()
       run: rm -f /tmp/gcp-key.json
+
+    - name: Get the load balancer IP
+      run: kubectl get service frontend-external -o jsonpath='{.status.loadBalancer.ingress[0].ip}'

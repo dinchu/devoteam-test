@@ -6,7 +6,6 @@ locals {
     "cloudprofiler.googleapis.com"
   ]
   memorystore_apis = ["redis.googleapis.com"]
-  cluster_name     = module.kubernetes.cluster_name
 }
 
 module "network" {
@@ -34,41 +33,4 @@ module "kubernetes" {
   memorystore        = var.memorystore
   filepath_manifest  = var.filepath_manifest
   enable_google_apis = module.enable_google_apis
-}
-
-module "gcloud" {
-  source  = "terraform-google-modules/gcloud/google"
-  version = "~> 3.0"
-
-  platform              = "linux"
-  additional_components = ["kubectl", "beta"]
-
-  create_cmd_entrypoint = "gcloud"
-  create_cmd_body       = "container clusters get-credentials ${module.kubernetes.cluster_name} --zone=${var.region} --project=${var.gcp_project_id}"
-}
-
-resource "null_resource" "apply_deployment" {
-  provisioner "local-exec" {
-    interpreter = ["bash", "-exc"]
-    command     = "kubectl apply -k ${var.filepath_manifest} -n ${var.namespace}"
-  }
-
-  depends_on = [
-    module.gcloud
-  ]
-}
-
-
-resource "null_resource" "wait_conditions" {
-  provisioner "local-exec" {
-    interpreter = ["bash", "-exc"]
-    command     = <<-EOT
-    kubectl wait --for=condition=AVAILABLE apiservice/v1beta1.metrics.k8s.io --timeout=180s
-    kubectl wait --for=condition=ready pods --all -n ${var.namespace} --timeout=380s
-    EOT
-  }
-
-  depends_on = [
-    resource.null_resource.apply_deployment
-  ]
 }

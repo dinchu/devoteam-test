@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+output "cluster_location" {
+  description = "Location of the cluster"
+  value       = var.region
+}
+
 output "cluster_name" {
   description = "Name of the cluster"
-  value       = module.kubernetes.cluster_name
+  value       = var.name
 }
